@@ -8,6 +8,7 @@ import tkMessageBox
 import neural_network
 import numpy
 
+
 emotions = ["Happy", "Sad", "Angry", "Neutral"]
 emotions_ws = ["Happy", "Angry", "Neutral"]
 

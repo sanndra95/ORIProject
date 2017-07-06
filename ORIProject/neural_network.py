@@ -17,9 +17,9 @@ EMOTIONS_TEST = []
 
 SIZE = 0
 
-NUM_OF_CLASSES = 4
+NUM_OF_CLASSES = 3
 
-SAD_MODE = False
+SAD_MODE = True
 TRAINING_MODE = False
 
 MODEL_NAME = "model.h5"
@@ -107,6 +107,8 @@ def train_nn(name):
         print y_train
         print y_test
 
+
+
     y_train = to_categorical(y_train, NUM_OF_CLASSES)
     y_test = to_categorical(y_test, NUM_OF_CLASSES)
 
@@ -115,7 +117,7 @@ def train_nn(name):
     print y_train.shape
     print y_test.shape
 
-    #numpy.random.seed(7)
+    numpy.random.seed(7)
 
     model = Sequential()
     model.add(Dense(32, input_dim=136, activation='relu'))
@@ -185,12 +187,17 @@ def train_nn(name):
 
     print "Found: Happy: {}, Sad: {}, Angry: {}, Neutral: {}".format(happy, sad, angry, neutral)
 
-    #model.save(name)
+    model.save(name)
 
 def load(name):
+    numpy.random.seed(7)
+
     model = load_model(name)
     print "Loaded model"
     x_test, y_test = load_from_csv('testdata.csv', DATA_TEST, EMOTIONS_TEST)
+
+    global SIZE
+    SIZE = len(x_test)
 
     #print x_test
     #print y_test
@@ -212,6 +219,58 @@ def load(name):
     print "Evaluating..."
     scores = model.evaluate(x_test, y_test, batch_size=10)
     print "{} ----- {}".format(model.metrics_names, scores)
+
+    print "Predikcija..."
+    predictions = model.predict(x_test)
+    # for x in predictions:
+    # print round(max(x))
+    # for x in predictions:
+    # print x
+    print predictions
+    list = []
+    # f = open('predictions.txt', 'ab')
+    for p in predictions:
+        list.append(numpy.argmax(p))
+
+    list2 = []
+    happy = 0
+    sad = 0
+    angry = 0
+    neutral = 0
+    for i in range(len(list)):
+        if list[i] == numpy.argmax(y_test[i]):
+            list2.append("true")
+            if numpy.argmax(y_test[i]) == 0:
+                happy += 1
+            elif numpy.argmax(y_test[i]) == 1:
+                if SAD_MODE:
+                    angry += 1
+                else:
+                    sad += 1
+            elif numpy.argmax(y_test[i]) == 2:
+                if SAD_MODE:
+                    neutral += 1
+                else:
+                    angry += 1
+            elif numpy.argmax(y_test[i]) == 3:
+                if not SAD_MODE:
+                    neutral += 1
+        else:
+            list2.append("false")
+            # print list[i]
+            # print y_test[i]
+            # f.write(str(i))
+            # f.write("\n")
+    # f.close()
+
+    print "True: {}".format(list2.count("true"))
+    print "False: {}".format(list2.count("false"))
+
+    print "Procenat tacnosti: {}".format((list2.count("true") * 100) / SIZE)
+
+    print "Found: Happy: {}, Sad: {}, Angry: {}, Neutral: {}".format(happy, sad, angry, neutral)
+
+
     return model
 
 def start_function():
